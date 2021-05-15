@@ -4,6 +4,9 @@ import "p5/lib/addons/p5.sound";
 import * as p5 from "p5";
 import audio from "../audio/cubes-no-1.ogg";
 import cueSet1 from "./cueSet1.js";
+import cueSet2 from "./cueSet2.js";
+import cueSet3 from "./cueSet3.js";
+import cueSet4 from "./cueSet4.js";
 
 const P5Sketch = () => {
     const sketchRef = useRef();
@@ -21,6 +24,12 @@ const P5Sketch = () => {
         p.cubes = {};
 
         p.cueSet1Completed = [];
+
+        p.cueSet2Completed = [];
+
+        p.cueSet3Completed = [];
+
+        p.cueSet4Completed = [];
 
         p.preload = () => {
             p.song = p.loadSound(audio);
@@ -42,7 +51,7 @@ const P5Sketch = () => {
                             y: y,
                             z: z,
                             hue: hue,
-                            show: false,
+                            showUntil: 0,
                             material: material
                         }
                         
@@ -57,9 +66,34 @@ const P5Sketch = () => {
                     'currentCue': (i + 1),
                     'duration': cueSet1[i].duration,
                     'midi': cueSet1[i].midi,
-                    'durationTicks': cueSet1[i].durationTicks,
+                    'time': cueSet1[i].time,
                 }
                 p.song.addCue(cueSet1[i].time, p.executeCueSet1, vars);
+            }
+
+            for (let i = 0; i < cueSet2.length; i++) {
+                let vars = {
+                    'currentCue': (i + 1),
+                    'duration': cueSet2[i].duration,
+                    'midi': cueSet2[i].midi,
+                    'time': cueSet2[i].time,
+                }
+                p.song.addCue(cueSet2[i].time, p.executeCueSet2, vars);
+            }
+
+            for (let i = 0; i < cueSet3.length; i++) {
+                p.song.addCue(cueSet3[i].time, p.executeCueSet3, (i + 1));
+            }
+
+            for (let i = 0; i < cueSet4.length; i++) {
+                let vars = {
+                    'currentCue': (i + 1),
+                    'duration': cueSet4[i].duration,
+                    'midi': cueSet4[i].midi,
+                    'time': cueSet4[i].time,
+                    'velocity': cueSet4[i].velocity,
+                }
+                p.song.addCue(cueSet4[i].time, p.executeCueSet4, vars);
             }
         };
 
@@ -77,10 +111,10 @@ const P5Sketch = () => {
             p.rotateY(p.frameCount * 0.01);
 
             for (const [key, cube] of Object.entries(p.cubes)) {
-                const opacity = cube.show ? 1 : 0.5;  
+                const opacity = cube.showUntil ? p.globalOnOpacity : p.globalOffOpacity;  
     
                 p[cube.material](cube.hue, 100, 100, opacity);
-                if(cube.show){
+                if(cube.showUntil){
                     p.stroke(0);
                 }
                 else {
@@ -285,30 +319,75 @@ const P5Sketch = () => {
         p.executeCueSet1 = (vars) => {
             const currentCue = vars.currentCue;
             if (!p.cueSet1Completed.includes(currentCue)) {
-               p.cueSet1Completed.push(currentCue);
-               if(vars.currentCue > 72 && vars.currentCue <= 144){
-                 console.log(vars);
+                p.cueSet1Completed.push(currentCue);
+                const time = vars.time.toFixed(3) * 1000;
+                const duration = vars.duration.toFixed(3) * 1000;
+                const showUntil = time + duration;
+                p.resetshowUntil(time);
+                const cubeKey1 = p.noteMapper[vars.midi].key1;
+                const cubeKey2 = p.noteMapper[vars.midi].key2;
+                const cubeKey3 = p.noteMapper[vars.midi].key3;
+                const cubeKey4 = p.noteMapper[vars.midi].key4;
+                const cubeKey5 = p.noteMapper[vars.midi].key5;
+                const cubeKey6 = p.noteMapper[vars.midi].key6;
+                p.cubes[cubeKey1].showUntil = showUntil;
+                p.cubes[cubeKey2].showUntil = showUntil;
+                p.cubes[cubeKey3].showUntil = showUntil;
+                p.cubes[cubeKey4].showUntil = showUntil;
+                p.cubes[cubeKey5].showUntil = showUntil;
+                p.cubes[cubeKey6].showUntil = showUntil;
+            }
+        };
+
+        p.executeCueSet2 = (vars) => {
+            const currentCue = vars.currentCue;
+            if (!p.cueSet2Completed.includes(currentCue)) {
+                p.cueSet2Completed.push(currentCue);
+                const time = vars.time.toFixed(3) * 1000;
+                const duration = vars.duration.toFixed(3) * 1000;
+                const showUntil = time + duration;
+                p.resetshowUntil(time);
+                const keys = vars.midi === 36 ? ['2,2,2', '4,4,2', '4,2,4', '2,4,4'] : ['4,4,4','2,2,4','2,4,2','4,2,2'];
+                for(let i = 0; i < keys.length; i++){
+                    p.cubes[keys[i]].showUntil = showUntil;
                 }
-               p.resetShow();
-               const cubeKey1 = p.noteMapper[vars.midi].key1;
-               const cubeKey2 = p.noteMapper[vars.midi].key2;
-               const cubeKey3 = p.noteMapper[vars.midi].key3;
-               const cubeKey4 = p.noteMapper[vars.midi].key4;
-               const cubeKey5 = p.noteMapper[vars.midi].key5;
-               const cubeKey6 = p.noteMapper[vars.midi].key6;
-               p.cubes[cubeKey1].show = true;
-               p.cubes[cubeKey2].show = true;
-               p.cubes[cubeKey3].show = true;
-               p.cubes[cubeKey4].show = true;
-               p.cubes[cubeKey5].show = true;
-               p.cubes[cubeKey6].show = true;
+            }
+        };
+
+        p.globalOffOpacity = 0.01;
+
+        p.globalOnOpacity = 0.2;
+
+        p.executeCueSet3 = (currentCue) => {
+            if (!p.cueSet3Completed.includes(currentCue)) {
+                p.cueSet3Completed.push(currentCue);
+                //p.globalOffOpacity+= 0.005;
+                p.globalOnOpacity+= 0.05;
+            }
+        };
+
+        p.executeCueSet4 = (vars) => {
+            const currentCue = vars.currentCue;
+            if (!p.cueSet4Completed.includes(currentCue)) {
+                p.cueSet4Completed.push(currentCue);
+                const time = vars.time.toFixed(3) * 1000;
+                const duration = vars.duration.toFixed(3) * 1000;
+                const showUntil = time + duration;
+                console.log(vars);
+                 const keys = vars.midi === 73 ? ['2,3,3', '3,3,3', '4,3,3', '3,3,2', '3,3,4', '3,4,3', '3,2,3'] : ['2,2,3','2,4,3', '2,3,2','2,3,4','4,2,3', '4,4,3','4,3,2','4,3,4',];
+                for(let i = 0; i < keys.length; i++){
+                    p.cubes[keys[i]].showUntil = showUntil;
+                }
             }
         };
 
 
-        p.resetShow = () => {
+        p.resetshowUntil = (currentTime) => {
             for (const [key, cube] of Object.entries(p.cubes)) {
-                p.cubes[key].show = false;
+                const showUntil = p.cubes[key].showUntil;
+                if(currentTime > showUntil){
+                    p.cubes[key].showUntil = 0;
+                }
             }
         };
 
@@ -340,6 +419,10 @@ const P5Sketch = () => {
                 );
             }
         };
+
+        p.reset = () => {
+            
+        }
 
         p.updateCanvasDimensions = () => {
             p.canvasWidth = window.innerWidth;
