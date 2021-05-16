@@ -35,26 +35,62 @@ const P5Sketch = () => {
             p.song = p.loadSound(audio);
         };
 
+        p.outerCrossKeys = []
+
         p.setup = () => {
             p.canvas = p.createCanvas(p.canvasWidth, p.canvasHeight, p.WEBGL);
             p.colorMode(p.HSB);
-            
-
             let hue = 0;
             for (let z = 1; z <= 5; z++) {
                 for (let y = 1; y <= 5; y++) {
                     for (let x = 1; x <= 5; x++) {
                         const key = x + ',' + y + ',' + z;
-                        const material = Math.random() < 0.5 ? 'emissiveMaterial' : 'ambientMaterial';
                         p.cubes[key] = {
                             x: x,
                             y: y,
                             z: z,
                             hue: hue,
+                            customOpacity: 0,
                             showUntil: 0,
-                            material: material
+                            material: 'ambientMaterial'
+                        }
+                        if(z === 2 && x  === 2){
+                            p.outerCrossKeys.push(key);
+                        }
+                        if(z === 2 && x  === 4){
+                            p.outerCrossKeys.push(key);
+                        }
+                        if(z === 4 && x  === 2){
+                            p.outerCrossKeys.push(key);
+                        }
+                        if(z === 4 && x  === 4){
+                            p.outerCrossKeys.push(key);
                         }
                         
+                        if(z === 2 && y  === 2){
+                            p.outerCrossKeys.push(key);
+                        }
+                        if(z === 2 && y  === 4){
+                            p.outerCrossKeys.push(key);
+                        }
+                        if(z === 4 && y  === 2){
+                            p.outerCrossKeys.push(key);
+                        }
+                        if(z === 4 && y  === 4){
+                            p.outerCrossKeys.push(key);
+                        }
+                        if(x === 2 && y  === 2){
+                            p.outerCrossKeys.push(key);
+                        }
+                        if(x === 2 && y  === 4){
+                            p.outerCrossKeys.push(key);
+                        }
+                        if(x === 4 && y  === 2){
+                            p.outerCrossKeys.push(key);
+                        }
+                        if(x === 4 && y  === 4){
+                            p.outerCrossKeys.push(key);
+                        }
                         hue = hue > 356 ? 0 : hue + 3;
 
                     }
@@ -111,7 +147,7 @@ const P5Sketch = () => {
             p.rotateY(p.frameCount * 0.01);
 
             for (const [key, cube] of Object.entries(p.cubes)) {
-                const opacity = cube.showUntil ? p.globalOnOpacity : p.globalOffOpacity;  
+                const opacity = cube.showUntil && cube.customOpacity ? cube.customOpacity : cube.showUntil ? p.globalOnOpacity : p.globalOffOpacity;  
     
                 p[cube.material](cube.hue, 100, 100, opacity);
                 if(cube.showUntil){
@@ -330,12 +366,12 @@ const P5Sketch = () => {
                 const cubeKey4 = p.noteMapper[vars.midi].key4;
                 const cubeKey5 = p.noteMapper[vars.midi].key5;
                 const cubeKey6 = p.noteMapper[vars.midi].key6;
-                p.cubes[cubeKey1].showUntil = showUntil;
-                p.cubes[cubeKey2].showUntil = showUntil;
-                p.cubes[cubeKey3].showUntil = showUntil;
-                p.cubes[cubeKey4].showUntil = showUntil;
-                p.cubes[cubeKey5].showUntil = showUntil;
-                p.cubes[cubeKey6].showUntil = showUntil;
+                p.cubes[cubeKey1].showUntil = p.cubes[cubeKey1].showUntil ? p.cubes[cubeKey1].showUntil : showUntil;
+                p.cubes[cubeKey2].showUntil = p.cubes[cubeKey2].showUntil ? p.cubes[cubeKey2].showUntil : showUntil;
+                p.cubes[cubeKey3].showUntil = p.cubes[cubeKey3].showUntil ? p.cubes[cubeKey3].showUntil : showUntil;
+                p.cubes[cubeKey4].showUntil = p.cubes[cubeKey4].showUntil ? p.cubes[cubeKey4].showUntil : showUntil;
+                p.cubes[cubeKey5].showUntil = p.cubes[cubeKey5].showUntil ? p.cubes[cubeKey5].showUntil : showUntil;
+                p.cubes[cubeKey6].showUntil = p.cubes[cubeKey6].showUntil ? p.cubes[cubeKey6].showUntil : showUntil;
             }
         };
 
@@ -347,22 +383,12 @@ const P5Sketch = () => {
                 const duration = vars.duration.toFixed(3) * 1000;
                 const showUntil = time + duration;
                 p.resetshowUntil(time);
-                const keys = vars.midi === 36 ? ['2,2,2', '4,4,2', '4,2,4', '2,4,4'] : ['4,4,4','2,2,4','2,4,2','4,2,2'];
+                const keys = vars.midi === 36 ? ['1,1,1', '5,5,1', '5,1,5', '1,5,5'] : ['5,5,5','1,1,5','1,5,1','5,1,1'];
                 for(let i = 0; i < keys.length; i++){
                     p.cubes[keys[i]].showUntil = showUntil;
+                    p.cubes[keys[i]].customOpacity = 1;
+                    p.cubes[keys[i]].material = 'emissiveMaterial';
                 }
-            }
-        };
-
-        p.globalOffOpacity = 0.01;
-
-        p.globalOnOpacity = 0.2;
-
-        p.executeCueSet3 = (currentCue) => {
-            if (!p.cueSet3Completed.includes(currentCue)) {
-                p.cueSet3Completed.push(currentCue);
-                //p.globalOffOpacity+= 0.005;
-                p.globalOnOpacity+= 0.05;
             }
         };
 
@@ -373,14 +399,27 @@ const P5Sketch = () => {
                 const time = vars.time.toFixed(3) * 1000;
                 const duration = vars.duration.toFixed(3) * 1000;
                 const showUntil = time + duration;
-                console.log(vars);
-                 const keys = vars.midi === 73 ? ['2,3,3', '3,3,3', '4,3,3', '3,3,2', '3,3,4', '3,4,3', '3,2,3'] : ['2,2,3','2,4,3', '2,3,2','2,3,4','4,2,3', '4,4,3','4,3,2','4,3,4',];
+                const innerCrossKeys = ['1,3,3','2,3,3', '3,3,3', '4,3,3', '5,3,3', '3,3,1','3,3,2', '3,3,4','3,3,5','3,1,3','3,2,3','3,4,3', '3,5,3',];
+                const keys = vars.midi === 73 ? p.outerCrossKeys : innerCrossKeys;
                 for(let i = 0; i < keys.length; i++){
                     p.cubes[keys[i]].showUntil = showUntil;
+                    p.cubes[keys[i]].customOpacity = currentCue > 1 ? currentCue * 0.2 : 0.1;
+                    p.cubes[keys[i]].material = currentCue > 3 ? 'emissiveMaterial' : 'ambientMaterial';
                 }
             }
         };
 
+        p.globalOffOpacity = 0.01;
+
+        p.globalOnOpacity = 0.01;
+
+        p.executeCueSet3 = (currentCue) => {
+            if (!p.cueSet3Completed.includes(currentCue)) {
+                p.cueSet3Completed.push(currentCue);
+                //p.globalOffOpacity+= 0.005;
+                p.globalOnOpacity+= 0.01;
+            }
+        };
 
         p.resetshowUntil = (currentTime) => {
             for (const [key, cube] of Object.entries(p.cubes)) {
