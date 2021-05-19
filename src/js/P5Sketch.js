@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from "react";
 import "./helpers/Globals";
 import "p5/lib/addons/p5.sound";
 import * as p5 from "p5";
+import PlayIcon from './PlayIcon.js';
 import audio from "../audio/cubes-no-1.ogg";
 import cueSet1 from "./cueSet1.js";
 import cueSet2 from "./cueSet2.js";
@@ -136,8 +137,8 @@ const P5Sketch = () => {
         p.draw = () => {
             let locX = p.mouseX - p.height / 2;
             let locY = p.mouseY - p.width / 2;
-            let boxDistance = p.sin(p.radians(p.frameCount)) * 20 + 40;
-            let boxSize = p.sin(p.radians(p.frameCount)) * 10 + 30;
+            let boxDistance = p.sin(p.radians(p.frameCount)) * 20 + 70;
+            let boxSize = p.sin(p.radians(p.frameCount)) * 10 + 60;
 
             p.background(0);
             p.ambientLight(60, 60, 60);
@@ -437,7 +438,7 @@ const P5Sketch = () => {
                 if (parseInt(p.song.currentTime()) >= parseInt(p.song.buffer.duration)) {
                     p.reset();
                 }
-                //document.getElementById("play-icon").classList.add("fade-out");
+                document.getElementById("play-icon").classList.add("fade-out");
                 p.canvas.addClass("fade-in");
                 p.song.play();
             }
@@ -498,6 +499,7 @@ const P5Sketch = () => {
 
     return (
         <div ref={sketchRef}>
+            <PlayIcon />
         </div>
     );
 };
